@@ -3,11 +3,18 @@ package main
 import(
 	"fmt"
 	"os"
+	"io/ioutil"
+	"encoding/json"
 )
 
-var fileName = "TabelogInfo.json"
+type TabelogInfo struct {
+	Field string `json:"Field"`
+	Omit string `json:"Omit"`
+	OmitEmpty string `json:"OmitEmpty"`
+	Num int `json:"num"`
+}
 
-func makeJSONFile() {
+func makeJSONFile(fileName string) {
 	file, err := os.Create("./tabelog_info/" + fileName)
 	if err != nil {
 		fmt.Println("ファイルが作成できませんでした。")
@@ -16,6 +23,25 @@ func makeJSONFile() {
 	}
 }
 
-func main(){
-	makeJSONFile()
+func writeTabeLogInfo(info []byte, fileName string) {
+	ioutil.WriteFile(fileName, info, os.ModePerm)
 }
+
+func main(){
+
+	var fileName = "TabelogInfo.json"
+	
+	tabeLogInfo := TabelogInfo{
+		Field: "field",
+		Omit: "omit",
+		OmitEmpty: "omit",
+		Num: 28,
+	}
+
+	bytes, _ := json.Marshal(&tabeLogInfo)
+	fmt.Println(string(bytes))
+
+	makeJSONFile(fileName)
+	writeTabeLogInfo(bytes, "./tabelog_info/" + fileName)
+}
+
