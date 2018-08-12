@@ -4,7 +4,7 @@ import(
 	"fmt"
 	"os"
 	"io/ioutil"
-	"encoding/json"
+	"net/http"
 )
 
 type TabelogInfo struct {
@@ -14,34 +14,45 @@ type TabelogInfo struct {
 	Num int `json:"num"`
 }
 
-func makeJSONFile(fileName string) {
+func makeTabeLogInfoFile(info []byte, fileName string){
+
 	file, err := os.Create("./tabelog_info/" + fileName)
 	if err != nil {
 		fmt.Println("ファイルが作成できませんでした。")
 	}else {
 		fmt.Println("ファイルを作成しました。\n%v\n", file)
-	}
+	}	
+	
+	ioutil.WriteFile("./tabelog_info/" + fileName, info, os.ModePerm)
 }
 
-func writeTabeLogInfo(info []byte, fileName string) {
-	ioutil.WriteFile(fileName, info, os.ModePerm)
+func getHttpInfo(url string) (string, error) {
+
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	b, _ := ioutil.ReadAll(resp.Body)
+	return string(b), nil	
+
 }
 
 func main(){
 
-	var fileName = "TabelogInfo.json"
+	var url = "https://tabelog.com/osaka/A2701/A270202/27040810/"
+	var fileName = "TabeLogInfo.json"
 	
-	tabeLogInfo := TabelogInfo{
-		Field: "field",
-		Omit: "omit",
-		OmitEmpty: "omit",
-		Num: 28,
+	bodyInfo, err := getHttpInfo(url)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
-	bytes, _ := json.Marshal(&tabeLogInfo)
-	fmt.Println(string(bytes))
-
-	makeJSONFile(fileName)
-	writeTabeLogInfo(bytes, "./tabelog_info/" + fileName)
+	fmt.Println(bodyInfo)
+	makeTabeLogInfoFile([]byte(bodyInfo), fileName)
 }
 
